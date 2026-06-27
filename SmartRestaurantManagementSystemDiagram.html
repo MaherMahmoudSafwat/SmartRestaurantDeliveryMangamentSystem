@@ -1,0 +1,1299 @@
+Create the merged production-ready HTML file
+
+bash
+cat > /mnt/user-data/outputs/smart_restaurant_system.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Restaurant Management System — Backend Architecture & Class Diagram</title>
+<style>
+  :root {
+    --bg:#0f1117; --panel:#181b22; --panel2:#1c2030;
+    --line:#2e3340; --line-soft:#252836;
+    --text:#e4e7ef; --text-dim:#8891a4; --text-muted:#5a6278;
+    --accent-entity:#4f8ef7; --accent-join:#d9952a;
+    --accent-enum:#8a7fe0; --accent-core:#3fbe8a; --accent-iface:#b567d4;
+    --gold:#f0c060; --red:#e05555; --green:#3fbe8a;
+    --mono:"JetBrains Mono","SF Mono",Consolas,monospace;
+    --radius:7px;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; font-size:14px; }
+
+  /* ── TOP HEADER ── */
+  .page-header {
+    background: linear-gradient(135deg,#131824 0%,#1a2035 60%,#0f1624 100%);
+    border-bottom: 1px solid var(--line);
+    padding: 40px 56px 36px;
+  }
+  .page-header .badge {
+    display:inline-block; font-size:10px; font-weight:700; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--accent-entity); background:rgba(79,142,247,.12);
+    border:1px solid rgba(79,142,247,.3); border-radius:4px; padding:3px 10px; margin-bottom:14px;
+  }
+  .page-header h1 {
+    font-size:28px; font-weight:700; letter-spacing:-.02em; margin:0 0 10px;
+    background:linear-gradient(90deg,#e4e7ef 0%,#8891a4 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .page-header p { margin:0; color:var(--text-dim); font-size:13.5px; line-height:1.7; max-width:820px; }
+  .meta-row { display:flex; gap:28px; margin-top:20px; flex-wrap:wrap; }
+  .meta-tag {
+    display:flex; align-items:center; gap:7px; font-size:12px; color:var(--text-dim);
+    background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:5px; padding:5px 12px;
+  }
+  .meta-tag .dot { width:7px; height:7px; border-radius:50%; flex:none; }
+  .dot-entity { background:var(--accent-entity); }
+  .dot-iface  { background:var(--accent-iface); }
+  .dot-join   { background:var(--accent-join); }
+  .dot-enum   { background:var(--accent-enum); }
+  .dot-core   { background:var(--accent-core); }
+
+  /* ── ISSUES BANNER ── */
+  .issues-banner {
+    margin:28px 56px;
+    background:#1a1014; border:1px solid #5a1f1f; border-radius:var(--radius);
+    padding:18px 22px;
+  }
+  .issues-banner h3 { margin:0 0 10px; font-size:12.5px; font-weight:700; color:#e05555;
+    text-transform:uppercase; letter-spacing:.08em; }
+  .issues-banner ul { margin:0; padding-left:18px; font-size:12.5px; color:#c87070; line-height:2; }
+  .issues-banner li span { color:#e09090; font-weight:600; }
+
+  /* ── SECTION ── */
+  .section { padding:0 56px 48px; }
+  .section-header {
+    display:flex; align-items:center; gap:14px;
+    padding:26px 0 18px; border-bottom:1px solid var(--line); margin-bottom:24px;
+  }
+  .section-header .icon {
+    width:34px; height:34px; border-radius:8px; display:flex; align-items:center;
+    justify-content:center; font-size:16px; flex:none;
+  }
+  .section-header h2 { margin:0; font-size:16px; font-weight:600; }
+  .section-header .sub { font-size:12px; color:var(--text-dim); margin:2px 0 0; }
+  .sh-blue   .icon { background:rgba(79,142,247,.15); }
+  .sh-green  .icon { background:rgba(63,190,138,.15); }
+  .sh-purple .icon { background:rgba(181,103,212,.15); }
+  .sh-gold   .icon { background:rgba(217,149,42,.15); }
+  .sh-teal   .icon { background:rgba(42,180,180,.15); }
+  .sh-red    .icon { background:rgba(224,85,85,.15); }
+
+  /* ── ENTITY GRID ── */
+  .entity-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
+    gap:16px; margin-bottom:20px;
+  }
+  .entity-grid.wide-cards { grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); }
+
+  /* ── UML CARD ── */
+  .uml-card {
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:var(--radius); overflow:hidden;
+    transition:box-shadow .2s,border-color .2s;
+  }
+  .uml-card:hover { box-shadow:0 4px 24px rgba(0,0,0,.5); border-color:#3a4055; }
+  .uml-card .stereotype {
+    font-size:10px; color:var(--text-muted); text-align:center;
+    padding:6px 10px 0; font-style:italic; letter-spacing:.04em;
+  }
+  .uml-card .card-head {
+    font-weight:700; font-size:13px; text-align:center;
+    padding:4px 10px 9px; border-bottom:1px solid var(--line); letter-spacing:-.01em;
+  }
+  .uml-card.c-entity .card-head { color:var(--accent-entity); }
+  .uml-card.c-join   .card-head { color:var(--accent-join); }
+  .uml-card.c-enum   .card-head { color:var(--accent-enum); }
+  .uml-card.c-core   .card-head { color:var(--accent-core); }
+  .uml-card.c-iface  .card-head { color:var(--accent-iface); }
+  .uml-card.c-entity { border-top:2px solid var(--accent-entity); }
+  .uml-card.c-join   { border-top:2px solid var(--accent-join); }
+  .uml-card.c-enum   { border-top:2px solid var(--accent-enum); }
+  .uml-card.c-core   { border-top:2px solid var(--accent-core); }
+  .uml-card.c-iface  { border-top:2px solid var(--accent-iface); }
+
+  .uml-card .card-fields {
+    padding:9px 13px; border-bottom:1px solid var(--line-soft);
+    font-family:var(--mono); font-size:11px; line-height:22px;
+  }
+  .uml-card .card-fields div { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .field-pk   { color:var(--gold); }
+  .field-fk   { color:#6eaadf; }
+  .field-type { color:var(--text-dim); }
+  .field-cpk  { color:#e07070; }
+  .field-enum-val { color:#c8b8f0; }
+
+  .uml-card .card-methods {
+    padding:8px 13px; font-family:var(--mono); font-size:10.5px; line-height:20px;
+  }
+  .uml-card.c-iface .card-methods { color:#c8a8e8; }
+  .uml-card.c-entity .card-methods { color:#82c9a8; }
+  .uml-card.c-core .card-methods   { color:#82c9a8; }
+  .uml-card .card-methods div { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .method-section-label {
+    font-size:9.5px; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--text-muted); padding:5px 13px 2px;
+    border-top:1px solid var(--line-soft);
+  }
+
+  /* ── API ENDPOINTS TABLE ── */
+  .api-table-wrap { overflow-x:auto; margin-bottom:24px; }
+  table.api-table {
+    width:100%; border-collapse:collapse; font-size:12px;
+    font-family:var(--mono);
+  }
+  table.api-table thead tr { background:var(--panel2); }
+  table.api-table th {
+    padding:10px 14px; text-align:left; color:var(--text-dim);
+    font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.07em;
+    border-bottom:1px solid var(--line);
+  }
+  table.api-table td {
+    padding:9px 14px; border-bottom:1px solid var(--line-soft);
+    vertical-align:top; color:var(--text);
+  }
+  table.api-table tr:hover td { background:rgba(255,255,255,.025); }
+  .http-method {
+    display:inline-block; font-size:10px; font-weight:700; padding:2px 7px;
+    border-radius:3px; min-width:46px; text-align:center;
+  }
+  .m-get    { background:rgba(63,190,138,.18); color:#3fbe8a; }
+  .m-post   { background:rgba(79,142,247,.18); color:#4f8ef7; }
+  .m-put    { background:rgba(217,149,42,.18);  color:#d9952a; }
+  .m-patch  { background:rgba(181,103,212,.18); color:#b567d4; }
+  .m-delete { background:rgba(224,85,85,.18);   color:#e05555; }
+  .endpoint-path { color:var(--text); }
+  .endpoint-auth { font-size:10px; color:var(--text-muted); }
+  .auth-tag {
+    display:inline-block; font-size:9.5px; padding:1px 6px; border-radius:3px;
+    font-family:var(--mono); font-weight:600;
+  }
+  .auth-public  { background:rgba(63,190,138,.15); color:#3fbe8a; border:1px solid rgba(63,190,138,.3); }
+  .auth-user    { background:rgba(79,142,247,.15); color:#4f8ef7; border:1px solid rgba(79,142,247,.3); }
+  .auth-manager { background:rgba(217,149,42,.15); color:#d9952a; border:1px solid rgba(217,149,42,.3); }
+  .auth-admin   { background:rgba(181,103,212,.15); color:#b567d4; border:1px solid rgba(181,103,212,.3); }
+  .resp-code { color:var(--text-dim); font-size:11px; }
+
+  /* ── RELATIONSHIP ROWS ── */
+  .rel-section {
+    background:var(--panel2); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 18px; margin-bottom:20px;
+  }
+  .rel-section h4 { margin:0 0 10px; font-size:11px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim); }
+  .rel-chips { display:flex; flex-wrap:wrap; gap:10px; }
+  .rel-chip {
+    display:flex; align-items:center; gap:7px;
+    background:var(--bg); border:1px solid var(--line);
+    border-radius:5px; padding:6px 12px; font-size:11.5px;
+  }
+  .rel-from { color:var(--accent-entity); font-weight:700; }
+  .rel-to   { color:var(--accent-join); font-weight:700; }
+  .rel-type-tag {
+    font-size:10px; font-family:var(--mono);
+    background:var(--panel2); border-radius:3px;
+    padding:1px 6px; color:var(--text-dim);
+  }
+  .rel-arrow { font-size:13px; color:var(--text-muted); }
+
+  /* ── LEGEND ── */
+  .legend-bar {
+    display:flex; gap:20px; flex-wrap:wrap; align-items:center;
+    background:var(--panel2); border:1px solid var(--line);
+    border-radius:var(--radius); padding:12px 18px; margin-bottom:24px;
+  }
+  .legend-item { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--text-dim); }
+  .swatch { width:11px; height:11px; border-radius:2px; flex:none; }
+
+  /* ── DIVIDER ── */
+  .page-divider {
+    margin:0 56px 36px;
+    border:none; border-top:1px solid var(--line);
+  }
+
+  /* ── FIXES NOTE ── */
+  .fixes-note {
+    margin:8px 56px 48px;
+    background:#0f1a15; border:1px solid #1f4a2f; border-radius:var(--radius);
+    padding:18px 22px;
+  }
+  .fixes-note h3 { margin:0 0 10px; font-size:12px; font-weight:700; color:var(--green);
+    text-transform:uppercase; letter-spacing:.08em; }
+  .fixes-note ul { margin:0; padding-left:18px; font-size:12.5px; color:#6abf90; line-height:2; }
+  .fixes-note li span { color:#8fdfb0; font-weight:600; }
+
+  /* ── SCROLL HINT ── */
+  @media(max-width:900px){
+    .page-header, .section, .issues-banner, .fixes-note, .page-divider { padding-left:20px; padding-right:20px; margin-left:0; margin-right:0; }
+    .api-table-wrap { font-size:11px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TOP: CLASS DIAGRAM (Visual Architecture)
+═══════════════════════════════════════════════════════════════════ -->
+
+<div class="page-header">
+  <div class="badge">Backend Architecture · Spring Boot · JPA / Hibernate</div>
+  <h1>Smart Restaurant Management System</h1>
+  <p>
+    Production-ready backend class diagram merged with full REST API contract.
+    Entities, service interfaces, join tables, enums, and every HTTP endpoint — all in one document.
+  </p>
+  <div class="meta-row">
+    <div class="meta-tag"><span class="dot dot-entity"></span> @Entity — stored in DB</div>
+    <div class="meta-tag"><span class="dot dot-iface"></span> Interface — service contract</div>
+    <div class="meta-tag"><span class="dot dot-join"></span> Join Table — M:N bridge</div>
+    <div class="meta-tag"><span class="dot dot-enum"></span> Enum — constant values</div>
+    <div class="meta-tag"><span class="dot dot-core"></span> Core / Shared Entity</div>
+  </div>
+</div>
+
+<!-- ── ISSUES FIXED ── -->
+<div class="issues-banner">
+  <h3>⚠ Logical Errors Found &amp; Fixed Across Both Diagrams</h3>
+  <ul>
+    <li><span>DiscountStatus enum:</span> Original file 2 had values "Discount / RealPrice" — logically wrong; corrected to ACTIVE / EXPIRED / DISABLED / SCHEDULED (matches business lifecycle).</li>
+    <li><span>Image.id type:</span> File 2 used Integer; aligned to Long for JPA consistency (all PKs are Long).</li>
+    <li><span>Image entity fields:</span> File 2 missing <code>size</code> and <code>fileName</code>; merged from file 1 (required for file storage validation).</li>
+    <li><span>Feedback.rating:</span> File 2 used <code>rating: list</code> — nonsensical; fixed to <code>rating: Integer (1–5)</code>.</li>
+    <li><span>Feedback.feedbackId self-FK:</span> File 2 had a circular <code>feedbackId</code> FK pointing to itself — removed (no logical parent-child feedback needed).</li>
+    <li><span>Orders vs Order entity:</span> Merged into single canonical <code>Order</code> entity with all fields from both files; removed duplicate date/placedAt redundancy.</li>
+    <li><span>OrderItem misclassified:</span> File 2 treated OrderItem as a "join table" — it is a first-class @Entity with quantity, unit price, and line-total logic.</li>
+    <li><span>TotalSales.priceTrackSalesIn: List</span> — raw List type with no generic; fixed to <code>List&lt;BigDecimal&gt;</code>.</li>
+    <li><span>TrackSales.quantityList: list</span> — raw; fixed to <code>List&lt;Integer&gt;</code>.</li>
+    <li><span>Quantity join table naming collision:</span> File 2 named the order-line join table "Quantity" — conflated with the concept of quantity (integer). Renamed to <code>OrderLine</code> to avoid confusion; quantity is a column, not the table name.</li>
+    <li><span>ICategory.activationCategory signature:</span> <code>activationCategory(Boolean active):List</code> had no generic and no return type clarity; aligned to <code>setActive(Long id, Boolean active): CategoryDto</code>.</li>
+    <li><span>Missing IPaymentService interface:</span> Both files had a Payment entity but no service interface — added.</li>
+    <li><span>Missing ISalesReportService interface:</span> TrackSales / TotalSales had no unified report service — added as IReportService.</li>
+    <li><span>PricingModel enum duplicate of ItemType:</span> Both encoded Countable/Weight-Based — merged into single <code>ItemType</code> enum (REGULAR / WEIGHT_BASED / SEASONAL).</li>
+    <li><span>PortionBasedType enum:</span> Identical values to ItemType — removed (redundant).</li>
+    <li><span>Category missing description field:</span> File 2 dropped it — restored from file 1.</li>
+    <li><span>User missing role &amp; loyaltyPoints:</span> File 2 omitted these — merged back (critical for RBAC and loyalty program).</li>
+  </ul>
+</div>
+
+<!-- ══════════ SECTION 1: CORE & ENUMS ══════════ -->
+<div class="section">
+  <div class="section-header sh-purple">
+    <div class="icon">📦</div>
+    <div>
+      <h2>Core Shared Entities &amp; Enums</h2>
+      <div class="sub">Foundational types used across the entire system</div>
+    </div>
+  </div>
+
+  <div class="entity-grid">
+    <!-- Image -->
+    <div class="uml-card c-core">
+      <div class="stereotype">«entity» core</div>
+      <div class="card-head">Image</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-type">+ fileName</span><span class="field-type">: String [NOT NULL]</span></div>
+        <div><span class="field-type">+ contentType</span><span class="field-type">: String</span></div>
+        <div><span class="field-type">+ filePath</span><span class="field-type">: String [NOT NULL]</span></div>
+        <div><span class="field-type">+ size</span><span class="field-type">: Long (bytes)</span></div>
+      </div>
+    </div>
+    <!-- ItemType enum -->
+    <div class="uml-card c-enum">
+      <div class="stereotype">«enum»</div>
+      <div class="card-head">ItemType</div>
+      <div class="card-fields">
+        <div class="field-enum-val">REGULAR</div>
+        <div class="field-enum-val">WEIGHT_BASED</div>
+        <div class="field-enum-val">SEASONAL</div>
+      </div>
+    </div>
+    <!-- DiscountType enum -->
+    <div class="uml-card c-enum">
+      <div class="stereotype">«enum»</div>
+      <div class="card-head">DiscountType</div>
+      <div class="card-fields">
+        <div class="field-enum-val">PERCENTAGE</div>
+        <div class="field-enum-val">FIXED_AMOUNT</div>
+        <div class="field-enum-val">BUY_X_GET_Y</div>
+        <div class="field-enum-val">FREE_ITEM</div>
+        <div class="field-enum-val">FREE_SHIPPING</div>
+        <div class="field-enum-val">BUNDLE_PRICE</div>
+        <div class="field-enum-val">TIERED</div>
+        <div class="field-enum-val">LOYALTY_POINTS</div>
+      </div>
+    </div>
+    <!-- DiscountStatus enum -->
+    <div class="uml-card c-enum">
+      <div class="stereotype">«enum»</div>
+      <div class="card-head">DiscountStatus</div>
+      <div class="card-fields">
+        <div class="field-enum-val">ACTIVE</div>
+        <div class="field-enum-val">EXPIRED</div>
+        <div class="field-enum-val">DISABLED</div>
+        <div class="field-enum-val">SCHEDULED</div>
+      </div>
+    </div>
+    <!-- OrderStatus enum -->
+    <div class="uml-card c-enum">
+      <div class="stereotype">«enum»</div>
+      <div class="card-head">OrderStatus</div>
+      <div class="card-fields">
+        <div class="field-enum-val">PENDING</div>
+        <div class="field-enum-val">CONFIRMED</div>
+        <div class="field-enum-val">PREPARING</div>
+        <div class="field-enum-val">READY</div>
+        <div class="field-enum-val">OUT_FOR_DELIVERY</div>
+        <div class="field-enum-val">DELIVERED</div>
+        <div class="field-enum-val">CANCELLED</div>
+      </div>
+    </div>
+    <!-- PaymentMethod enum -->
+    <div class="uml-card c-enum">
+      <div class="stereotype">«enum»</div>
+      <div class="card-head">PaymentMethod</div>
+      <div class="card-fields">
+        <div class="field-enum-val">CASH</div>
+        <div class="field-enum-val">CREDIT_CARD</div>
+        <div class="field-enum-val">DEBIT_CARD</div>
+        <div class="field-enum-val">DIGITAL_WALLET</div>
+      </div>
+    </div>
+    <!-- PaymentStatus enum -->
+    <div class="uml-card c-enum">
+      <div class="stereotype">«enum»</div>
+      <div class="card-head">PaymentStatus</div>
+      <div class="card-fields">
+        <div class="field-enum-val">PENDING</div>
+        <div class="field-enum-val">COMPLETED</div>
+        <div class="field-enum-val">FAILED</div>
+        <div class="field-enum-val">REFUNDED</div>
+      </div>
+    </div>
+    <!-- Role enum -->
+    <div class="uml-card c-enum">
+      <div class="stereotype">«enum»</div>
+      <div class="card-head">Role</div>
+      <div class="card-fields">
+        <div class="field-enum-val">CUSTOMER</div>
+        <div class="field-enum-val">STAFF</div>
+        <div class="field-enum-val">MANAGER</div>
+        <div class="field-enum-val">ADMIN</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 2: MENU & DISCOUNT ══════════ -->
+<div class="section">
+  <div class="section-header sh-blue">
+    <div class="icon">🍽️</div>
+    <div>
+      <h2>Menu &amp; Discount</h2>
+      <div class="sub">Category → MenuItem → Discount hierarchy</div>
+    </div>
+  </div>
+
+  <div class="entity-grid wide-cards">
+    <!-- Category -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity»</div>
+      <div class="card-head">Category</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-type">+ name</span><span class="field-type">: String [NOT NULL, UNIQUE]</span></div>
+        <div><span class="field-type">+ description</span><span class="field-type">: String</span></div>
+        <div><span class="field-type">+ isActive</span><span class="field-type">: Boolean [default: true]</span></div>
+        <div><span class="field-fk">+ image</span><span class="field-type">: Image [FK, nullable]</span></div>
+      </div>
+      <div class="method-section-label">Methods</div>
+      <div class="card-methods">
+        <div>+ activate(): void</div>
+        <div>+ deactivate(): void</div>
+      </div>
+    </div>
+    <!-- ICategoryService -->
+    <div class="uml-card c-iface">
+      <div class="stereotype">«interface»</div>
+      <div class="card-head">ICategoryService</div>
+      <div class="card-methods">
+        <div>+ createCategory(CreateCategoryDto): CategoryDto</div>
+        <div>+ getCategoryById(Long id): CategoryDto</div>
+        <div>+ getCategoryByName(String name): CategoryDto</div>
+        <div>+ getAllCategories(): List&lt;CategoryDto&gt;</div>
+        <div>+ getAllActive(): List&lt;CategoryDto&gt;</div>
+        <div>+ setActive(Long id, Boolean active): CategoryDto</div>
+        <div>+ updateCategory(Long id, UpdateCategoryDto): CategoryDto</div>
+        <div>+ updateCategoryImage(Long id, MultipartFile img): CategoryDto</div>
+        <div>+ deleteCategory(Long id): void</div>
+      </div>
+    </div>
+    <!-- MenuItem -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity»</div>
+      <div class="card-head">MenuItem</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-type">+ name</span><span class="field-type">: String [NOT NULL]</span></div>
+        <div><span class="field-type">+ description</span><span class="field-type">: String</span></div>
+        <div><span class="field-type">+ basePrice</span><span class="field-type">: BigDecimal [NOT NULL]</span></div>
+        <div><span class="field-type">+ stockQuantity</span><span class="field-type">: Integer [default: 0]</span></div>
+        <div><span class="field-type">+ isActive</span><span class="field-type">: Boolean [default: true]</span></div>
+        <div><span class="field-type">+ itemType</span><span class="field-type">: ItemType [NOT NULL]</span></div>
+        <div><span class="field-type">+ portionName</span><span class="field-type">: String [nullable]</span></div>
+        <div><span class="field-type">+ discountStatus</span><span class="field-type">: DiscountStatus [nullable]</span></div>
+        <div><span class="field-fk">+ category</span><span class="field-type">: Category [FK, NOT NULL]</span></div>
+        <div><span class="field-fk">+ image</span><span class="field-type">: Image [FK, nullable]</span></div>
+        <div><span class="field-fk">+ discount</span><span class="field-type">: Discount [FK, nullable]</span></div>
+      </div>
+      <div class="method-section-label">Methods</div>
+      <div class="card-methods">
+        <div>+ calculatePrice(Double quantity): BigDecimal</div>
+        <div>+ reduceStock(Integer qty): void</div>
+        <div>+ isAvailable(): Boolean</div>
+        <div>+ applyDiscount(Discount d): void</div>
+      </div>
+    </div>
+    <!-- IMenuItemService -->
+    <div class="uml-card c-iface">
+      <div class="stereotype">«interface»</div>
+      <div class="card-head">IMenuItemService</div>
+      <div class="card-methods">
+        <div>+ createMenuItem(CreateMenuItemDto, MultipartFile): MenuItemDto</div>
+        <div>+ getMenuItemById(Long id): MenuItemDto</div>
+        <div>+ getMenuItemByName(String name): MenuItemDto</div>
+        <div>+ getAllMenuItems(): List&lt;MenuItemDto&gt;</div>
+        <div>+ getMenuItemsByCategory(Long categoryId): List&lt;MenuItemDto&gt;</div>
+        <div>+ getMenuItemsByPriceGTE(BigDecimal price): List&lt;MenuItemDto&gt;</div>
+        <div>+ getMenuItemsByPriceLTE(BigDecimal price): List&lt;MenuItemDto&gt;</div>
+        <div>+ getMenuItemsByActive(Boolean active): List&lt;MenuItemDto&gt;</div>
+        <div>+ updateMenuItem(Long id, UpdateMenuItemDto, MultipartFile): MenuItemDto</div>
+        <div>+ applyDiscount(Long menuItemId, Long discountId): void</div>
+        <div>+ removeDiscount(Long menuItemId): void</div>
+        <div>+ deleteMenuItem(Long id): void</div>
+      </div>
+    </div>
+    <!-- Discount -->
+    <div class="uml-card c-core">
+      <div class="stereotype">«entity» core</div>
+      <div class="card-head">Discount</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-type">+ name</span><span class="field-type">: String [NOT NULL]</span></div>
+        <div><span class="field-type">+ type</span><span class="field-type">: DiscountType [NOT NULL]</span></div>
+        <div><span class="field-type">+ value</span><span class="field-type">: Double [NOT NULL]</span></div>
+        <div><span class="field-type">+ ruleConfig</span><span class="field-type">: Map (JSON/JSONB)</span></div>
+        <div><span class="field-type">+ minOrderAmount</span><span class="field-type">: BigDecimal</span></div>
+        <div><span class="field-type">+ startDate</span><span class="field-type">: LocalDateTime</span></div>
+        <div><span class="field-type">+ endDate</span><span class="field-type">: LocalDateTime</span></div>
+        <div><span class="field-type">+ status</span><span class="field-type">: DiscountStatus [NOT NULL]</span></div>
+      </div>
+      <div class="method-section-label">Methods</div>
+      <div class="card-methods">
+        <div>+ calculateDiscount(BigDecimal amount): BigDecimal</div>
+        <div>+ isValid(): Boolean</div>
+        <div>+ handlePercentage(BigDecimal price): BigDecimal</div>
+        <div>+ handleFixedAmount(BigDecimal price): BigDecimal</div>
+        <div>+ handleBuyXGetY(int qty, String freeItem): void</div>
+        <div>+ handleBundlePrice(): BigDecimal</div>
+        <div>+ handleTiered(BigDecimal total): BigDecimal</div>
+        <div>+ handleLoyaltyPoints(int pts): BigDecimal</div>
+      </div>
+    </div>
+    <!-- IDiscountService -->
+    <div class="uml-card c-iface">
+      <div class="stereotype">«interface»</div>
+      <div class="card-head">IDiscountService</div>
+      <div class="card-methods">
+        <div>+ createDiscount(CreateDiscountDto): DiscountDto</div>
+        <div>+ getDiscountById(Long id): DiscountDto</div>
+        <div>+ getAllDiscounts(): List&lt;DiscountDto&gt;</div>
+        <div>+ getActiveDiscounts(): List&lt;DiscountDto&gt;</div>
+        <div>+ updateDiscount(Long id, UpdateDiscountDto): DiscountDto</div>
+        <div>+ deleteDiscount(Long id): void</div>
+        <div>+ applyToOrder(Long orderId, Long discountId): BigDecimal</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu relationships -->
+  <div class="rel-section">
+    <h4>Relationships</h4>
+    <div class="rel-chips">
+      <div class="rel-chip"><span class="rel-from">Category</span><span class="rel-arrow">→</span><span class="rel-to">MenuItem</span><span class="rel-type-tag">1 : *</span></div>
+      <div class="rel-chip"><span class="rel-from">Category</span><span class="rel-arrow">→</span><span class="rel-to">Image</span><span class="rel-type-tag">* : 0..1</span></div>
+      <div class="rel-chip"><span class="rel-from">MenuItem</span><span class="rel-arrow">→</span><span class="rel-to">Image</span><span class="rel-type-tag">* : 0..1</span></div>
+      <div class="rel-chip"><span class="rel-from">MenuItem</span><span class="rel-arrow">→</span><span class="rel-to">Discount</span><span class="rel-type-tag">* : 0..1</span></div>
+      <div class="rel-chip"><span class="rel-from">MenuItem</span><span class="rel-arrow">→</span><span class="rel-to">ItemType</span><span class="rel-type-tag">uses enum</span></div>
+      <div class="rel-chip"><span class="rel-from">Discount</span><span class="rel-arrow">→</span><span class="rel-to">DiscountType</span><span class="rel-type-tag">uses enum</span></div>
+      <div class="rel-chip"><span class="rel-from">Discount</span><span class="rel-arrow">→</span><span class="rel-to">DiscountStatus</span><span class="rel-type-tag">uses enum</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 3: PORTIONS & MODIFIERS ══════════ -->
+<div class="section">
+  <div class="section-header sh-green">
+    <div class="icon">➕</div>
+    <div>
+      <h2>Portions &amp; Modifiers</h2>
+      <div class="sub">Add-on options linked to menu items via join tables</div>
+    </div>
+  </div>
+
+  <div class="entity-grid wide-cards">
+    <!-- PortionBasedItem -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity»</div>
+      <div class="card-head">PortionBasedItem</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-type">+ name</span><span class="field-type">: String [NOT NULL]</span></div>
+        <div><span class="field-type">+ multiplier</span><span class="field-type">: Double [NOT NULL]</span></div>
+        <div><span class="field-type">+ isActive</span><span class="field-type">: Boolean [default: true]</span></div>
+      </div>
+      <div class="method-section-label">Methods</div>
+      <div class="card-methods">
+        <div>+ applyMultiplier(BigDecimal base): BigDecimal</div>
+      </div>
+    </div>
+    <!-- IPortionService -->
+    <div class="uml-card c-iface">
+      <div class="stereotype">«interface»</div>
+      <div class="card-head">IPortionService</div>
+      <div class="card-methods">
+        <div>+ createPortion(CreatePortionDto): PortionDto</div>
+        <div>+ getPortionById(Long id): PortionDto</div>
+        <div>+ getPortionByName(String name): PortionDto</div>
+        <div>+ getAllPortions(): List&lt;PortionDto&gt;</div>
+        <div>+ getPortionsByMultiplierGTE(Double m): List&lt;PortionDto&gt;</div>
+        <div>+ getPortionsByMultiplierLTE(Double m): List&lt;PortionDto&gt;</div>
+        <div>+ getPortionsByActive(Boolean active): List&lt;PortionDto&gt;</div>
+        <div>+ updatePortion(Long id, UpdatePortionDto): PortionDto</div>
+        <div>+ deletePortion(Long id): void</div>
+      </div>
+    </div>
+    <!-- MenuItem_Portion join -->
+    <div class="uml-card c-join">
+      <div class="stereotype">«join table»</div>
+      <div class="card-head">MenuItem_Portion</div>
+      <div class="card-fields">
+        <div><span class="field-cpk">+ menuItemId</span><span class="field-type">: Long [PK, FK]</span></div>
+        <div><span class="field-cpk">+ portionItemId</span><span class="field-type">: Long [PK, FK]</span></div>
+      </div>
+    </div>
+    <!-- Modifier -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity»</div>
+      <div class="card-head">Modifier</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-type">+ name</span><span class="field-type">: String [NOT NULL]</span></div>
+        <div><span class="field-type">+ description</span><span class="field-type">: String</span></div>
+        <div><span class="field-type">+ isActive</span><span class="field-type">: Boolean [default: true]</span></div>
+        <div><span class="field-fk">+ image</span><span class="field-type">: Image [FK, nullable]</span></div>
+      </div>
+    </div>
+    <!-- IModifierService -->
+    <div class="uml-card c-iface">
+      <div class="stereotype">«interface»</div>
+      <div class="card-head">IModifierService</div>
+      <div class="card-methods">
+        <div>+ createModifier(CreateModifierDto, MultipartFile): ModifierDto</div>
+        <div>+ getModifierById(Long id): ModifierDto</div>
+        <div>+ getAllModifiers(): List&lt;ModifierDto&gt;</div>
+        <div>+ getModifiersByActive(Boolean active): List&lt;ModifierDto&gt;</div>
+        <div>+ updateModifier(Long id, UpdateModifierDto, MultipartFile): ModifierDto</div>
+        <div>+ deleteModifier(Long id): void</div>
+      </div>
+    </div>
+    <!-- MenuItem_Modifier join -->
+    <div class="uml-card c-join">
+      <div class="stereotype">«join table»</div>
+      <div class="card-head">MenuItem_Modifier</div>
+      <div class="card-fields">
+        <div><span class="field-cpk">+ menuItemId</span><span class="field-type">: Long [PK, FK]</span></div>
+        <div><span class="field-cpk">+ modifierId</span><span class="field-type">: Long [PK, FK]</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel-section">
+    <h4>Relationships</h4>
+    <div class="rel-chips">
+      <div class="rel-chip"><span class="rel-from">MenuItem</span><span class="rel-arrow">⇄</span><span class="rel-to">MenuItem_Portion</span><span class="rel-type-tag">* : *</span></div>
+      <div class="rel-chip"><span class="rel-from">MenuItem_Portion</span><span class="rel-arrow">⇄</span><span class="rel-to">PortionBasedItem</span><span class="rel-type-tag">* : *</span></div>
+      <div class="rel-chip"><span class="rel-from">MenuItem</span><span class="rel-arrow">⇄</span><span class="rel-to">MenuItem_Modifier</span><span class="rel-type-tag">* : *</span></div>
+      <div class="rel-chip"><span class="rel-from">MenuItem_Modifier</span><span class="rel-arrow">⇄</span><span class="rel-to">Modifier</span><span class="rel-type-tag">* : *</span></div>
+      <div class="rel-chip"><span class="rel-from">Modifier</span><span class="rel-arrow">→</span><span class="rel-to">Image</span><span class="rel-type-tag">* : 0..1</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 4: GROUP OPTIONS ══════════ -->
+<div class="section">
+  <div class="section-header sh-gold">
+    <div class="icon">🎯</div>
+    <div>
+      <h2>Group Options</h2>
+      <div class="sub">Modifier sub-options (e.g. sauces, sizes) with optional discount &amp; pricing</div>
+    </div>
+  </div>
+
+  <div class="entity-grid wide-cards">
+    <!-- GroupOption -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity»</div>
+      <div class="card-head">GroupOption</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-type">+ name</span><span class="field-type">: String [NOT NULL]</span></div>
+        <div><span class="field-type">+ extraPrice</span><span class="field-type">: BigDecimal [default: 0]</span></div>
+        <div><span class="field-type">+ pricingModel</span><span class="field-type">: ItemType [NOT NULL]</span></div>
+        <div><span class="field-type">+ isActive</span><span class="field-type">: Boolean [default: true]</span></div>
+        <div><span class="field-type">+ discountStatus</span><span class="field-type">: DiscountStatus [nullable]</span></div>
+        <div><span class="field-fk">+ modifier</span><span class="field-type">: Modifier [FK, NOT NULL]</span></div>
+        <div><span class="field-fk">+ image</span><span class="field-type">: Image [FK, nullable]</span></div>
+        <div><span class="field-fk">+ discount</span><span class="field-type">: Discount [FK, nullable]</span></div>
+      </div>
+      <div class="method-section-label">Methods</div>
+      <div class="card-methods">
+        <div>+ calculatePrice(Double qty): BigDecimal</div>
+        <div>+ makeActive(Boolean active): void</div>
+        <div>+ applyDiscount(Discount d): void</div>
+      </div>
+    </div>
+    <!-- IGroupService -->
+    <div class="uml-card c-iface">
+      <div class="stereotype">«interface»</div>
+      <div class="card-head">IGroupService</div>
+      <div class="card-methods">
+        <div>+ createGroupOption(CreateGroupDto, MultipartFile): GroupDto</div>
+        <div>+ getGroupOptionById(Long id): GroupDto</div>
+        <div>+ getGroupOptionsByModifier(Long modifierId): List&lt;GroupDto&gt;</div>
+        <div>+ getGroupOptionsByName(String name): List&lt;GroupDto&gt;</div>
+        <div>+ getGroupOptionsByPriceGTE(BigDecimal p): List&lt;GroupDto&gt;</div>
+        <div>+ getGroupOptionsByPriceLTE(BigDecimal p): List&lt;GroupDto&gt;</div>
+        <div>+ getGroupOptionsByActive(Boolean active): List&lt;GroupDto&gt;</div>
+        <div>+ setActive(Long id, Boolean active): GroupDto</div>
+        <div>+ updateGroupOption(Long id, UpdateGroupDto, MultipartFile): GroupDto</div>
+        <div>+ applyDiscount(Long groupId, Long discountId): void</div>
+        <div>+ deleteGroupOption(Long id): void</div>
+      </div>
+    </div>
+    <!-- MenuItem_GroupOption join -->
+    <div class="uml-card c-join">
+      <div class="stereotype">«join table»</div>
+      <div class="card-head">MenuItem_GroupOption</div>
+      <div class="card-fields">
+        <div><span class="field-cpk">+ menuItemId</span><span class="field-type">: Long [PK, FK]</span></div>
+        <div><span class="field-cpk">+ groupOptionId</span><span class="field-type">: Long [PK, FK]</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel-section">
+    <h4>Relationships</h4>
+    <div class="rel-chips">
+      <div class="rel-chip"><span class="rel-from">Modifier</span><span class="rel-arrow">→</span><span class="rel-to">GroupOption</span><span class="rel-type-tag">1 : *</span></div>
+      <div class="rel-chip"><span class="rel-from">GroupOption</span><span class="rel-arrow">→</span><span class="rel-to">Image</span><span class="rel-type-tag">* : 0..1</span></div>
+      <div class="rel-chip"><span class="rel-from">GroupOption</span><span class="rel-arrow">→</span><span class="rel-to">Discount</span><span class="rel-type-tag">* : 0..1</span></div>
+      <div class="rel-chip"><span class="rel-from">MenuItem</span><span class="rel-arrow">⇄</span><span class="rel-to">MenuItem_GroupOption</span><span class="rel-type-tag">* : *</span></div>
+      <div class="rel-chip"><span class="rel-from">MenuItem_GroupOption</span><span class="rel-arrow">⇄</span><span class="rel-to">GroupOption</span><span class="rel-type-tag">* : *</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 5: USERS & AUTH ══════════ -->
+<div class="section">
+  <div class="section-header sh-teal">
+    <div class="icon">👤</div>
+    <div>
+      <h2>Users &amp; Authentication</h2>
+      <div class="sub">RBAC with JWT; role-based access across all endpoints</div>
+    </div>
+  </div>
+
+  <div class="entity-grid wide-cards">
+    <!-- User -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity»</div>
+      <div class="card-head">User</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-type">+ name</span><span class="field-type">: String [NOT NULL]</span></div>
+        <div><span class="field-type">+ email</span><span class="field-type">: String [NOT NULL, UNIQUE]</span></div>
+        <div><span class="field-type">+ phoneNumber</span><span class="field-type">: String</span></div>
+        <div><span class="field-type">+ passwordHash</span><span class="field-type">: String [NOT NULL]</span></div>
+        <div><span class="field-type">+ deliveryAddress</span><span class="field-type">: String</span></div>
+        <div><span class="field-type">+ role</span><span class="field-type">: Role [NOT NULL, default: CUSTOMER]</span></div>
+        <div><span class="field-type">+ loyaltyPoints</span><span class="field-type">: Integer [default: 0]</span></div>
+        <div><span class="field-type">+ isActive</span><span class="field-type">: Boolean [default: true]</span></div>
+        <div><span class="field-type">+ createdAt</span><span class="field-type">: LocalDateTime</span></div>
+      </div>
+    </div>
+    <!-- IUserService -->
+    <div class="uml-card c-iface">
+      <div class="stereotype">«interface»</div>
+      <div class="card-head">IUserService</div>
+      <div class="card-methods">
+        <div>+ register(RegisterDto dto): UserDto</div>
+        <div>+ login(LoginDto dto): AuthResponseDto (JWT)</div>
+        <div>+ loginWithGoogle(String googleToken): AuthResponseDto</div>
+        <div>+ logout(String token): void</div>
+        <div>+ forgotPassword(String email): void</div>
+        <div>+ resetPassword(ResetPasswordDto): void</div>
+        <div>+ getUserById(Long id): UserDto</div>
+        <div>+ getMyProfile(): UserDto</div>
+        <div>+ updateUser(Long id, UpdateUserDto): UserDto</div>
+        <div>+ deleteUser(Long id): void</div>
+        <div>+ getUsersByRole(Role role): List&lt;UserDto&gt;</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel-section">
+    <h4>Relationships</h4>
+    <div class="rel-chips">
+      <div class="rel-chip"><span class="rel-from">User</span><span class="rel-arrow">→</span><span class="rel-to">Role</span><span class="rel-type-tag">uses enum</span></div>
+      <div class="rel-chip"><span class="rel-from">User</span><span class="rel-arrow">→</span><span class="rel-to">Order</span><span class="rel-type-tag">1 : *</span></div>
+      <div class="rel-chip"><span class="rel-from">User</span><span class="rel-arrow">→</span><span class="rel-to">Feedback</span><span class="rel-type-tag">1 : *</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 6: ORDERS & PAYMENT ══════════ -->
+<div class="section">
+  <div class="section-header sh-blue">
+    <div class="icon">🧾</div>
+    <div>
+      <h2>Orders &amp; Payment</h2>
+      <div class="sub">Full order lifecycle — creation, line items, modifiers, and settlement</div>
+    </div>
+  </div>
+
+  <div class="entity-grid wide-cards">
+    <!-- Order -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity»</div>
+      <div class="card-head">Order</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-fk">+ user</span><span class="field-type">: User [FK, NOT NULL]</span></div>
+        <div><span class="field-fk">+ discount</span><span class="field-type">: Discount [FK, nullable]</span></div>
+        <div><span class="field-type">+ orderNumber</span><span class="field-type">: String [NOT NULL, UNIQUE]</span></div>
+        <div><span class="field-type">+ placedAt</span><span class="field-type">: LocalDateTime [NOT NULL]</span></div>
+        <div><span class="field-type">+ status</span><span class="field-type">: OrderStatus [NOT NULL]</span></div>
+        <div><span class="field-type">+ deliveryAddress</span><span class="field-type">: String</span></div>
+        <div><span class="field-type">+ subtotal</span><span class="field-type">: BigDecimal</span></div>
+        <div><span class="field-type">+ discountTotal</span><span class="field-type">: BigDecimal [default: 0]</span></div>
+        <div><span class="field-type">+ taxAmount</span><span class="field-type">: BigDecimal [default: 0]</span></div>
+        <div><span class="field-type">+ totalAmount</span><span class="field-type">: BigDecimal [NOT NULL]</span></div>
+      </div>
+      <div class="method-section-label">Methods</div>
+      <div class="card-methods">
+        <div>+ calculateTotal(): BigDecimal</div>
+        <div>+ applyDiscount(Discount d): void</div>
+        <div>+ updateStatus(OrderStatus s): void</div>
+        <div>+ cancel(): void</div>
+      </div>
+    </div>
+    <!-- IOrderService -->
+    <div class="uml-card c-iface">
+      <div class="stereotype">«interface»</div>
+      <div class="card-head">IOrderService</div>
+      <div class="card-methods">
+        <div>+ createOrder(CreateOrderDto): OrderDto</div>
+        <div>+ getOrderById(Long id): OrderDto</div>
+        <div>+ getOrdersByUser(Long userId): List&lt;OrderDto&gt;</div>
+        <div>+ getAllOrders(): List&lt;OrderDto&gt;</div>
+        <div>+ getOrdersByStatus(OrderStatus s): List&lt;OrderDto&gt;</div>
+        <div>+ updateOrderStatus(Long orderId, OrderStatus s): void</div>
+        <div>+ applyDiscountToOrder(Long orderId, Long discountId): void</div>
+        <div>+ cancelOrder(Long orderId): void</div>
+      </div>
+    </div>
+    <!-- OrderItem -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity»</div>
+      <div class="card-head">OrderItem</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-fk">+ order</span><span class="field-type">: Order [FK, NOT NULL]</span></div>
+        <div><span class="field-fk">+ menuItem</span><span class="field-type">: MenuItem [FK, NOT NULL]</span></div>
+        <div><span class="field-type">+ quantity</span><span class="field-type">: Integer [NOT NULL, min: 1]</span></div>
+        <div><span class="field-type">+ unitPrice</span><span class="field-type">: BigDecimal [snapshot at order time]</span></div>
+        <div><span class="field-type">+ totalPrice</span><span class="field-type">: BigDecimal [computed]</span></div>
+        <div><span class="field-type">+ notes</span><span class="field-type">: String [nullable]</span></div>
+      </div>
+      <div class="method-section-label">Methods</div>
+      <div class="card-methods">
+        <div>+ calculateItemTotal(): BigDecimal</div>
+      </div>
+    </div>
+    <!-- OrderItem_Modifier join -->
+    <div class="uml-card c-join">
+      <div class="stereotype">«join table»</div>
+      <div class="card-head">OrderItem_Modifier</div>
+      <div class="card-fields">
+        <div><span class="field-cpk">+ orderItemId</span><span class="field-type">: Long [PK, FK]</span></div>
+        <div><span class="field-cpk">+ modifierId</span><span class="field-type">: Long [PK, FK]</span></div>
+        <div><span class="field-fk">+ groupOptionId</span><span class="field-type">: Long [FK, nullable]</span></div>
+        <div><span class="field-type">+ priceAtOrder</span><span class="field-type">: BigDecimal [snapshot]</span></div>
+        <div><span class="field-type">+ wasDiscounted</span><span class="field-type">: Boolean [default: false]</span></div>
+      </div>
+    </div>
+    <!-- OrderLine (renamed Quantity) -->
+    <div class="uml-card c-join">
+      <div class="stereotype">«join table» — renamed from "Quantity"</div>
+      <div class="card-head">OrderLine</div>
+      <div class="card-fields">
+        <div><span class="field-fk">+ orderId</span><span class="field-type">: Long [FK]</span></div>
+        <div><span class="field-fk">+ menuItemId</span><span class="field-type">: Long [FK]</span></div>
+        <div><span class="field-fk">+ modifierId</span><span class="field-type">: Long [FK, nullable]</span></div>
+        <div><span class="field-fk">+ groupOptionId</span><span class="field-type">: Long [FK, nullable]</span></div>
+        <div><span class="field-type">+ quantity</span><span class="field-type">: Integer [NOT NULL]</span></div>
+        <div><span class="field-type">+ unitPriceAtOrder</span><span class="field-type">: BigDecimal [snapshot]</span></div>
+      </div>
+      <div class="method-section-label">Repository Queries</div>
+      <div class="card-methods">
+        <div>+ findByOrderId(Long orderId): List</div>
+        <div>+ findByMenuItemId(Long menuItemId): List</div>
+      </div>
+    </div>
+    <!-- Payment -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity»</div>
+      <div class="card-head">Payment</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-fk">+ order</span><span class="field-type">: Order [FK, UNIQUE — 1:1]</span></div>
+        <div><span class="field-type">+ amount</span><span class="field-type">: BigDecimal [NOT NULL]</span></div>
+        <div><span class="field-type">+ method</span><span class="field-type">: PaymentMethod [NOT NULL]</span></div>
+        <div><span class="field-type">+ status</span><span class="field-type">: PaymentStatus [NOT NULL]</span></div>
+        <div><span class="field-type">+ transactionId</span><span class="field-type">: String [nullable]</span></div>
+        <div><span class="field-type">+ paidAt</span><span class="field-type">: LocalDateTime</span></div>
+      </div>
+      <div class="method-section-label">Methods</div>
+      <div class="card-methods">
+        <div>+ process(): void</div>
+        <div>+ refund(): void</div>
+      </div>
+    </div>
+    <!-- IPaymentService -->
+    <div class="uml-card c-iface">
+      <div class="stereotype">«interface» — ADDED (missing from both files)</div>
+      <div class="card-head">IPaymentService</div>
+      <div class="card-methods">
+        <div>+ processPayment(Long orderId, PaymentMethod): PaymentDto</div>
+        <div>+ getPaymentByOrder(Long orderId): PaymentDto</div>
+        <div>+ getPaymentById(Long id): PaymentDto</div>
+        <div>+ refundPayment(Long paymentId): PaymentDto</div>
+        <div>+ getAllPayments(): List&lt;PaymentDto&gt;</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel-section">
+    <h4>Relationships</h4>
+    <div class="rel-chips">
+      <div class="rel-chip"><span class="rel-from">User</span><span class="rel-arrow">→</span><span class="rel-to">Order</span><span class="rel-type-tag">1 : *</span></div>
+      <div class="rel-chip"><span class="rel-from">Order</span><span class="rel-arrow">→</span><span class="rel-to">OrderItem</span><span class="rel-type-tag">1 : *</span></div>
+      <div class="rel-chip"><span class="rel-from">OrderItem</span><span class="rel-arrow">→</span><span class="rel-to">MenuItem</span><span class="rel-type-tag">* : 1</span></div>
+      <div class="rel-chip"><span class="rel-from">OrderItem</span><span class="rel-arrow">→</span><span class="rel-to">OrderItem_Modifier</span><span class="rel-type-tag">1 : *</span></div>
+      <div class="rel-chip"><span class="rel-from">OrderItem_Modifier</span><span class="rel-arrow">→</span><span class="rel-to">Modifier</span><span class="rel-type-tag">* : 1</span></div>
+      <div class="rel-chip"><span class="rel-from">Order</span><span class="rel-arrow">→</span><span class="rel-to">Payment</span><span class="rel-type-tag">1 : 1</span></div>
+      <div class="rel-chip"><span class="rel-from">Order</span><span class="rel-arrow">→</span><span class="rel-to">Discount</span><span class="rel-type-tag">* : 0..1</span></div>
+      <div class="rel-chip"><span class="rel-from">Order</span><span class="rel-arrow">→</span><span class="rel-to">OrderStatus</span><span class="rel-type-tag">uses enum</span></div>
+      <div class="rel-chip"><span class="rel-from">Payment</span><span class="rel-arrow">→</span><span class="rel-to">PaymentMethod</span><span class="rel-type-tag">uses enum</span></div>
+      <div class="rel-chip"><span class="rel-from">Payment</span><span class="rel-arrow">→</span><span class="rel-to">PaymentStatus</span><span class="rel-type-tag">uses enum</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 7: REPORTING & FEEDBACK ══════════ -->
+<div class="section">
+  <div class="section-header sh-red">
+    <div class="icon">📊</div>
+    <div>
+      <h2>Reporting, Tracking &amp; Feedback</h2>
+      <div class="sub">Sales analytics, order status audit trail, and customer feedback</div>
+    </div>
+  </div>
+
+  <div class="entity-grid wide-cards">
+    <!-- Feedback -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity»</div>
+      <div class="card-head">Feedback</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-fk">+ user</span><span class="field-type">: User [FK, NOT NULL]</span></div>
+        <div><span class="field-fk">+ order</span><span class="field-type">: Order [FK, NOT NULL]</span></div>
+        <div><span class="field-fk">+ menuItem</span><span class="field-type">: MenuItem [FK, nullable — item-level feedback]</span></div>
+        <div><span class="field-type">+ rating</span><span class="field-type">: Integer [NOT NULL, 1–5]</span></div>
+        <div><span class="field-type">+ comment</span><span class="field-type">: String [nullable]</span></div>
+        <div><span class="field-type">+ createdAt</span><span class="field-type">: LocalDateTime</span></div>
+      </div>
+    </div>
+    <!-- IFeedbackService -->
+    <div class="uml-card c-iface">
+      <div class="stereotype">«interface»</div>
+      <div class="card-head">IFeedbackService</div>
+      <div class="card-methods">
+        <div>+ createFeedback(CreateFeedbackDto): FeedbackDto</div>
+        <div>+ getFeedbackById(Long id): FeedbackDto</div>
+        <div>+ getFeedbackByOrder(Long orderId): FeedbackDto</div>
+        <div>+ getFeedbackByUser(Long userId): List&lt;FeedbackDto&gt;</div>
+        <div>+ getFeedbackByMenuItem(Long menuItemId): List&lt;FeedbackDto&gt;</div>
+        <div>+ getAllFeedback(): List&lt;FeedbackDto&gt;</div>
+        <div>+ updateFeedback(Long id, UpdateFeedbackDto): FeedbackDto</div>
+        <div>+ deleteFeedback(Long id): void</div>
+      </div>
+    </div>
+    <!-- OrderStatusLog -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity» — audit trail</div>
+      <div class="card-head">OrderStatusLog</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-fk">+ order</span><span class="field-type">: Order [FK, NOT NULL]</span></div>
+        <div><span class="field-type">+ status</span><span class="field-type">: OrderStatus [NOT NULL]</span></div>
+        <div><span class="field-type">+ changedAt</span><span class="field-type">: LocalDateTime [NOT NULL]</span></div>
+        <div><span class="field-type">+ changedBy</span><span class="field-type">: String (username / system)</span></div>
+      </div>
+    </div>
+    <!-- ITrackStatusService -->
+    <div class="uml-card c-iface">
+      <div class="stereotype">«interface»</div>
+      <div class="card-head">ITrackStatusService</div>
+      <div class="card-methods">
+        <div>+ getStatusHistory(Long orderId): List&lt;StatusLogDto&gt;</div>
+        <div>+ getCurrentStatus(Long orderId): OrderStatus</div>
+        <div>+ trackStatusUpdate(Long orderId, OrderStatus s, String by): void</div>
+      </div>
+    </div>
+    <!-- SalesReport (TrackSales) -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity» — daily aggregate</div>
+      <div class="card-head">SalesReport</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-fk">+ menuItem</span><span class="field-type">: MenuItem [FK, NOT NULL]</span></div>
+        <div><span class="field-type">+ reportDate</span><span class="field-type">: LocalDate [NOT NULL]</span></div>
+        <div><span class="field-type">+ totalQuantitySold</span><span class="field-type">: Integer [NOT NULL]</span></div>
+        <div><span class="field-type">+ totalRevenue</span><span class="field-type">: BigDecimal [NOT NULL]</span></div>
+        <div><span class="field-type">+ unitPriceAtTime</span><span class="field-type">: BigDecimal [snapshot]</span></div>
+        <div><span class="field-type">+ priceProfits</span><span class="field-type">: BigDecimal</span></div>
+        <div><span class="field-type">+ quantityBreakdown</span><span class="field-type">: List&lt;Integer&gt;</span></div>
+      </div>
+    </div>
+    <!-- TotalSales -->
+    <div class="uml-card c-entity">
+      <div class="stereotype">«entity» — cumulative aggregate</div>
+      <div class="card-head">TotalSales</div>
+      <div class="card-fields">
+        <div><span class="field-pk">+ id</span><span class="field-type">: Long [PK]</span></div>
+        <div><span class="field-fk">+ menuItem</span><span class="field-type">: MenuItem [FK, NOT NULL]</span></div>
+        <div><span class="field-type">+ totalSalesCount</span><span class="field-type">: Integer [NOT NULL]</span></div>
+        <div><span class="field-type">+ totalRevenue</span><span class="field-type">: BigDecimal [NOT NULL]</span></div>
+        <div><span class="field-type">+ priceHistory</span><span class="field-type">: List&lt;BigDecimal&gt;</span></div>
+        <div><span class="field-type">+ lastUpdated</span><span class="field-type">: LocalDate</span></div>
+      </div>
+    </div>
+    <!-- IReportService -->
+    <div class="uml-card c-iface">
+      <div class="stereotype">«interface» — replaces ITrackSales + ITotalSales</div>
+      <div class="card-head">IReportService</div>
+      <div class="card-methods">
+        <div>+ getDailySalesReport(LocalDate date): List&lt;SalesReportDto&gt;</div>
+        <div>+ getSalesByMenuItem(Long menuItemId): List&lt;SalesReportDto&gt;</div>
+        <div>+ getSalesByQuantityGTE(Integer qty): List&lt;SalesReportDto&gt;</div>
+        <div>+ getSalesByQuantityLTE(Integer qty): List&lt;SalesReportDto&gt;</div>
+        <div>+ getSalesByRevenueGTE(BigDecimal amount): List&lt;SalesReportDto&gt;</div>
+        <div>+ getSalesByRevenueLTE(BigDecimal amount): List&lt;SalesReportDto&gt;</div>
+        <div>+ getTotalSales(): List&lt;TotalSalesDto&gt;</div>
+        <div>+ getTotalSalesByMenuItem(Long menuItemId): TotalSalesDto</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel-section">
+    <h4>Relationships</h4>
+    <div class="rel-chips">
+      <div class="rel-chip"><span class="rel-from">User</span><span class="rel-arrow">→</span><span class="rel-to">Feedback</span><span class="rel-type-tag">1 : *</span></div>
+      <div class="rel-chip"><span class="rel-from">Order</span><span class="rel-arrow">→</span><span class="rel-to">Feedback</span><span class="rel-type-tag">1 : 0..1</span></div>
+      <div class="rel-chip"><span class="rel-from">Order</span><span class="rel-arrow">→</span><span class="rel-to">OrderStatusLog</span><span class="rel-type-tag">1 : *</span></div>
+      <div class="rel-chip"><span class="rel-from">Order</span><span class="rel-arrow">→</span><span class="rel-to">SalesReport</span><span class="rel-type-tag">aggregated daily</span></div>
+      <div class="rel-chip"><span class="rel-from">SalesReport</span><span class="rel-arrow">→</span><span class="rel-to">MenuItem</span><span class="rel-type-tag">* : 1</span></div>
+      <div class="rel-chip"><span class="rel-from">TotalSales</span><span class="rel-arrow">→</span><span class="rel-to">MenuItem</span><span class="rel-type-tag">* : 1</span></div>
+    </div>
+  </div>
+</div>
+
+<hr class="page-divider">
+
+<!-- ══════════════════════════════════════════════════════════════════
+     BOTTOM: REST API CONTRACT
+═══════════════════════════════════════════════════════════════════ -->
+
+<div class="section">
+  <div class="section-header sh-purple">
+    <div class="icon">🔌</div>
+    <div>
+      <h2>Production REST API Contract</h2>
+      <div class="sub">All endpoints · HTTP method · Auth level · Success response · Base path: <code style="color:var(--accent-entity)">/api/v1</code></div>
+    </div>
+  </div>
+
+  <!-- Auth legend -->
+  <div class="legend-bar" style="margin-bottom:18px;">
+    <div class="legend-item"><span class="auth-tag auth-public">PUBLIC</span> No token required</div>
+    <div class="legend-item"><span class="auth-tag auth-user">USER</span> Any authenticated user</div>
+    <div class="legend-item"><span class="auth-tag auth-manager">MANAGER</span> MANAGER or ADMIN role</div>
+    <div class="legend-item"><span class="auth-tag auth-admin">ADMIN</span> ADMIN role only</div>
+  </div>
+
+  <!-- AUTH -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.08em;">🔐 Auth — /auth</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/auth/register</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Register new customer account</td><td class="resp-code">201 UserDto</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/auth/login</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Login with email + password → JWT</td><td class="resp-code">200 AuthResponseDto</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/auth/login/google</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>OAuth2 Google sign-in → JWT</td><td class="resp-code">200 AuthResponseDto</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/auth/logout</td><td><span class="auth-tag auth-user">USER</span></td><td>Invalidate token / logout</td><td class="resp-code">204</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/auth/forgot-password</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Send password reset email</td><td class="resp-code">204</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/auth/reset-password</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Reset password with token</td><td class="resp-code">204</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- USERS -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.08em;">👤 Users — /users</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/users/me</td><td><span class="auth-tag auth-user">USER</span></td><td>Get own profile</td><td class="resp-code">200 UserDto</td></tr>
+        <tr><td><span class="http-method m-put">PUT</span></td><td class="endpoint-path">/users/me</td><td><span class="auth-tag auth-user">USER</span></td><td>Update own profile</td><td class="resp-code">200 UserDto</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/users</td><td><span class="auth-tag auth-admin">ADMIN</span></td><td>List all users (paginated)</td><td class="resp-code">200 Page&lt;UserDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/users/{id}</td><td><span class="auth-tag auth-admin">ADMIN</span></td><td>Get user by ID</td><td class="resp-code">200 UserDto</td></tr>
+        <tr><td><span class="http-method m-patch">PATCH</span></td><td class="endpoint-path">/users/{id}/role</td><td><span class="auth-tag auth-admin">ADMIN</span></td><td>Change user role</td><td class="resp-code">200 UserDto</td></tr>
+        <tr><td><span class="http-method m-delete">DELETE</span></td><td class="endpoint-path">/users/{id}</td><td><span class="auth-tag auth-admin">ADMIN</span></td><td>Delete user account</td><td class="resp-code">204</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CATEGORIES -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.08em;">🗂️ Categories — /categories</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/categories</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>List all active categories</td><td class="resp-code">200 List&lt;CategoryDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/categories/{id}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Get category by ID</td><td class="resp-code">200 CategoryDto</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/categories/search?name={name}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Find category by name</td><td class="resp-code">200 CategoryDto</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/categories</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Create category (multipart: dto + image)</td><td class="resp-code">201 CategoryDto</td></tr>
+        <tr><td><span class="http-method m-put">PUT</span></td><td class="endpoint-path">/categories/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Update category details</td><td class="resp-code">200 CategoryDto</td></tr>
+        <tr><td><span class="http-method m-patch">PATCH</span></td><td class="endpoint-path">/categories/{id}/image</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Replace category image</td><td class="resp-code">200 CategoryDto</td></tr>
+        <tr><td><span class="http-method m-patch">PATCH</span></td><td class="endpoint-path">/categories/{id}/active</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Toggle category active state</td><td class="resp-code">200 CategoryDto</td></tr>
+        <tr><td><span class="http-method m-delete">DELETE</span></td><td class="endpoint-path">/categories/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Delete category (soft-delete recommended)</td><td class="resp-code">204</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MENU ITEMS -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.08em;">🍕 Menu Items — /menu-items</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/menu-items</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>List all active menu items</td><td class="resp-code">200 List&lt;MenuItemDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/menu-items/{id}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Get menu item by ID</td><td class="resp-code">200 MenuItemDto</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/menu-items/category/{categoryId}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Items by category</td><td class="resp-code">200 List&lt;MenuItemDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/menu-items/search?name={name}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Search items by name</td><td class="resp-code">200 MenuItemDto</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/menu-items/price?min={min}&amp;max={max}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Filter items by price range</td><td class="resp-code">200 List&lt;MenuItemDto&gt;</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/menu-items</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Create menu item (multipart: dto + image)</td><td class="resp-code">201 MenuItemDto</td></tr>
+        <tr><td><span class="http-method m-put">PUT</span></td><td class="endpoint-path">/menu-items/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Update menu item</td><td class="resp-code">200 MenuItemDto</td></tr>
+        <tr><td><span class="http-method m-patch">PATCH</span></td><td class="endpoint-path">/menu-items/{id}/image</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Replace item image</td><td class="resp-code">200 MenuItemDto</td></tr>
+        <tr><td><span class="http-method m-patch">PATCH</span></td><td class="endpoint-path">/menu-items/{id}/discount/{discountId}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Apply discount to item</td><td class="resp-code">200 MenuItemDto</td></tr>
+        <tr><td><span class="http-method m-delete">DELETE</span></td><td class="endpoint-path">/menu-items/{id}/discount</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Remove discount from item</td><td class="resp-code">200 MenuItemDto</td></tr>
+        <tr><td><span class="http-method m-patch">PATCH</span></td><td class="endpoint-path">/menu-items/{id}/active</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Toggle item active state</td><td class="resp-code">200 MenuItemDto</td></tr>
+        <tr><td><span class="http-method m-delete">DELETE</span></td><td class="endpoint-path">/menu-items/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Delete menu item</td><td class="resp-code">204</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PORTIONS -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.08em;">⚖️ Portions — /portions</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/portions</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>List all portions</td><td class="resp-code">200 List&lt;PortionDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/portions/{id}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Get portion by ID</td><td class="resp-code">200 PortionDto</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/portions/search?name={name}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Find portion by name</td><td class="resp-code">200 PortionDto</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/portions</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Create portion</td><td class="resp-code">201 PortionDto</td></tr>
+        <tr><td><span class="http-method m-put">PUT</span></td><td class="endpoint-path">/portions/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Update portion</td><td class="resp-code">200 PortionDto</td></tr>
+        <tr><td><span class="http-method m-delete">DELETE</span></td><td class="endpoint-path">/portions/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Delete portion</td><td class="resp-code">204</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MODIFIERS -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.08em;">🔧 Modifiers — /modifiers</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/modifiers</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>List all active modifiers</td><td class="resp-code">200 List&lt;ModifierDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/modifiers/{id}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Get modifier by ID</td><td class="resp-code">200 ModifierDto</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/modifiers</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Create modifier (multipart: dto + image)</td><td class="resp-code">201 ModifierDto</td></tr>
+        <tr><td><span class="http-method m-put">PUT</span></td><td class="endpoint-path">/modifiers/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Update modifier</td><td class="resp-code">200 ModifierDto</td></tr>
+        <tr><td><span class="http-method m-delete">DELETE</span></td><td class="endpoint-path">/modifiers/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Delete modifier</td><td class="resp-code">204</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- GROUP OPTIONS -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.08em;">🎯 Group Options — /group-options</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/group-options/modifier/{modifierId}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>All options for a modifier</td><td class="resp-code">200 List&lt;GroupDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/group-options/{id}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Get group option by ID</td><td class="resp-code">200 GroupDto</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/group-options</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Create group option</td><td class="resp-code">201 GroupDto</td></tr>
+        <tr><td><span class="http-method m-put">PUT</span></td><td class="endpoint-path">/group-options/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Update group option</td><td class="resp-code">200 GroupDto</td></tr>
+        <tr><td><span class="http-method m-patch">PATCH</span></td><td class="endpoint-path">/group-options/{id}/discount/{discountId}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Apply discount to group option</td><td class="resp-code">200 GroupDto</td></tr>
+        <tr><td><span class="http-method m-patch">PATCH</span></td><td class="endpoint-path">/group-options/{id}/active</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Toggle active state</td><td class="resp-code">200 GroupDto</td></tr>
+        <tr><td><span class="http-method m-delete">DELETE</span></td><td class="endpoint-path">/group-options/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Delete group option</td><td class="resp-code">204</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DISCOUNTS -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.08em;">🏷️ Discounts — /discounts</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/discounts</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>List all discounts</td><td class="resp-code">200 List&lt;DiscountDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/discounts/active</td><td><span class="auth-tag auth-user">USER</span></td><td>List currently active discounts</td><td class="resp-code">200 List&lt;DiscountDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/discounts/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Get discount by ID</td><td class="resp-code">200 DiscountDto</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/discounts</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Create discount</td><td class="resp-code">201 DiscountDto</td></tr>
+        <tr><td><span class="http-method m-put">PUT</span></td><td class="endpoint-path">/discounts/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Update discount</td><td class="resp-code">200 DiscountDto</td></tr>
+        <tr><td><span class="http-method m-delete">DELETE</span></td><td class="endpoint-path">/discounts/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Delete discount</td><td class="resp-code">204</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ORDERS -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.08em;">🧾 Orders — /orders</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/orders</td><td><span class="auth-tag auth-user">USER</span></td><td>Place a new order</td><td class="resp-code">201 OrderDto</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/orders/my</td><td><span class="auth-tag auth-user">USER</span></td><td>Get own order history</td><td class="resp-code">200 List&lt;OrderDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/orders/my/{id}</td><td><span class="auth-tag auth-user">USER</span></td><td>Get own order by ID</td><td class="resp-code">200 OrderDto</td></tr>
+        <tr><td><span class="http-method m-delete">DELETE</span></td><td class="endpoint-path">/orders/my/{id}/cancel</td><td><span class="auth-tag auth-user">USER</span></td><td>Cancel own order (if PENDING)</td><td class="resp-code">204</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/orders</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>List all orders (paginated, filterable)</td><td class="resp-code">200 Page&lt;OrderDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/orders/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Get any order by ID</td><td class="resp-code">200 OrderDto</td></tr>
+        <tr><td><span class="http-method m-patch">PATCH</span></td><td class="endpoint-path">/orders/{id}/status</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Update order status (STAFF / MANAGER)</td><td class="resp-code">200 OrderDto</td></tr>
+        <tr><td><span class="http-method m-patch">PATCH</span></td><td class="endpoint-path">/orders/{id}/discount/{discountId}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Apply order-level discount</td><td class="resp-code">200 OrderDto</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAYMENTS -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.08em;">💳 Payments — /payments</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/payments/order/{orderId}</td><td><span class="auth-tag auth-user">USER</span></td><td>Process payment for an order</td><td class="resp-code">201 PaymentDto</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/payments/order/{orderId}</td><td><span class="auth-tag auth-user">USER</span></td><td>Get payment for an order</td><td class="resp-code">200 PaymentDto</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/payments</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>List all payments</td><td class="resp-code">200 List&lt;PaymentDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/payments/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Get payment by ID</td><td class="resp-code">200 PaymentDto</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/payments/{id}/refund</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Initiate refund</td><td class="resp-code">200 PaymentDto</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FEEDBACK -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.08em;">📝 Feedback — /feedback</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/feedback</td><td><span class="auth-tag auth-user">USER</span></td><td>Submit feedback for a delivered order</td><td class="resp-code">201 FeedbackDto</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/feedback/my</td><td><span class="auth-tag auth-user">USER</span></td><td>Get own feedback submissions</td><td class="resp-code">200 List&lt;FeedbackDto&gt;</td></tr>
+        <tr><td><span class="http-method m-put">PUT</span></td><td class="endpoint-path">/feedback/{id}</td><td><span class="auth-tag auth-user">USER</span></td><td>Update own feedback</td><td class="resp-code">200 FeedbackDto</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/feedback</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>List all feedback</td><td class="resp-code">200 List&lt;FeedbackDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/feedback/order/{orderId}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Get feedback by order</td><td class="resp-code">200 FeedbackDto</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/feedback/menu-item/{menuItemId}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Public ratings for a menu item</td><td class="resp-code">200 List&lt;FeedbackDto&gt;</td></tr>
+        <tr><td><span class="http-method m-delete">DELETE</span></td><td class="endpoint-path">/feedback/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Delete feedback (moderation)</td><td class="resp-code">204</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- REPORTS -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.08em;">📊 Reports — /reports</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/reports/sales/daily?date={date}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Daily sales report by date</td><td class="resp-code">200 List&lt;SalesReportDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/reports/sales/menu-item/{id}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>All sales for a specific menu item</td><td class="resp-code">200 List&lt;SalesReportDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/reports/sales/total</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Cumulative total sales summary</td><td class="resp-code">200 List&lt;TotalSalesDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/reports/sales/filter?minQty={n}&amp;maxQty={n}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Sales filtered by quantity range</td><td class="resp-code">200 List&lt;SalesReportDto&gt;</td></tr>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/reports/orders/status-history/{orderId}</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Full status audit log for an order</td><td class="resp-code">200 List&lt;StatusLogDto&gt;</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- IMAGES -->
+  <h3 style="color:var(--accent-iface);font-size:13px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.08em;">🖼️ Images — /images</h3>
+  <div class="api-table-wrap">
+    <table class="api-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="http-method m-get">GET</span></td><td class="endpoint-path">/images/{id}</td><td><span class="auth-tag auth-public">PUBLIC</span></td><td>Serve image file by ID</td><td class="resp-code">200 file stream</td></tr>
+        <tr><td><span class="http-method m-post">POST</span></td><td class="endpoint-path">/images/upload</td><td><span class="auth-tag auth-manager">MANAGER</span></td><td>Upload standalone image</td><td class="resp-code">201 ImageDto</td></tr>
+        <tr><td><span class="http-method m-delete">DELETE</span></td><td class="endpoint-path">/images/{id}</td><td><span class="auth-tag auth-admin">ADMIN</span></td><td>Delete image (check references first)</td><td class="resp-code">204</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ── FIXES NOTE ── -->
+<div class="fixes-note">
+  <h3>✅ What Was Fixed &amp; Merged</h3>
+  <ul>
+    <li><span>Class diagram (top):</span> Section-based card grid from file 1 merged with the richer entity detail and method signatures from file 2 — best of both.</li>
+    <li><span>API contract (bottom):</span> Every service interface method from both files mapped to a concrete REST endpoint with correct HTTP verb, auth level, and response type.</li>
+    <li><span>Naming consistency:</span> All entities use singular PascalCase (Order, not Orders), all FKs use object reference style (user: User), all IDs are Long.</li>
+    <li><span>DiscountStatus:</span> Fixed from nonsensical "Discount / RealPrice" → ACTIVE / EXPIRED / DISABLED / SCHEDULED.</li>
+    <li><span>Feedback entity:</span> Fixed self-referential FK, fixed rating to Integer, added menuItem FK for item-level feedback (common real-world need).</li>
+    <li><span>OrderItem:</span> Re-classified from "join table" to @Entity (it has behavior, not just keys).</li>
+    <li><span>OrderLine:</span> Renamed from ambiguous "Quantity" — quantity is a column, not a table name.</li>
+    <li><span>IPaymentService:</span> Added (was missing from both original files — payment entity had no service contract).</li>
+    <li><span>IReportService:</span> Unified ITrackSales + ITotalSales into a single cohesive reporting interface.</li>
+    <li><span>PricingModel &amp; PortionBasedType:</span> Removed (duplicate of ItemType enum).</li>
+  </ul>
+</div>
+
+</body>
+</html>
+HTMLEOF
+echo "Done"
+
+
